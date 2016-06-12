@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-    ArrayList<String> items;
-    ArrayAdapter<String> itemsAdapter;
+    ArrayList<Item> items;
+    ItemsAdapter itemsAdapter;
     ListView lvItems;
     EditText etNewItem;
     private final int EDIT_ITEM_CODE = 20;
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void launchEditItemView(int position) {
         Intent i = new Intent(MainActivity.this, EditItemActivity.class);
-        i.putExtra("itemText",items.get(position));
+        i.putExtra("itemText",items.get(position).text);
         i.putExtra("position",position);
         startActivityForResult(i,EDIT_ITEM_CODE);
     }
@@ -76,9 +76,15 @@ public class MainActivity extends AppCompatActivity {
         File fileDir = getFilesDir();
         File itemFile = new File(fileDir, "item.txt");
         try {
-            items = new ArrayList<String>(FileUtils.readLines(itemFile));
+            ArrayList<String> inputData = new ArrayList<String>(FileUtils.readLines(itemFile));
+            Item tempItem;
+            items = new ArrayList<Item>();
+            for(int i = 0; i< inputData.size(); i ++){
+                tempItem = new Item(inputData.get(i));
+                items.add(i,tempItem);
+            }
         } catch (IOException e) {
-            items = new ArrayList<String>();
+            items = new ArrayList<Item>();
         }
     }
 
@@ -86,7 +92,11 @@ public class MainActivity extends AppCompatActivity {
         File fileDir = getFilesDir();
         File itemFile = new File(fileDir, "item.txt");
         try {
-            FileUtils.writeLines(itemFile, items);
+            ArrayList<String> outputData = new ArrayList<String>();
+            for(int i = 0; i < items.size(); i++){
+                outputData.add(i,items.get(i).text);
+            }
+            FileUtils.writeLines(itemFile, outputData);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -94,13 +104,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void populateArrayItems() {
         readItems();
-        itemsAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
+        itemsAdapter = new ItemsAdapter(this, items);
     }
 
     public void onAddItem(View view) {
         etNewItem = (EditText) findViewById(R.id.etNewItem);
         String itemText = etNewItem.getText().toString();
-        itemsAdapter.add(itemText);
+        Item newItem = new Item(itemText);
+        itemsAdapter.add(newItem);
         etNewItem.setText("");
         writeItems();
     }
@@ -109,8 +120,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if (resultCode == RESULT_OK && requestCode == EDIT_ITEM_CODE) {
             String itemText = data.getExtras().getString("itemText");
+            Item updatedItem = new Item(itemText);
             int position = data.getExtras().getInt("position",0);
-            items.set(position,itemText);
+            items.set(position,updatedItem);
             itemsAdapter.notifyDataSetChanged();
             writeItems();
         }
