@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:inputType="textMultiLine"
         android:ems="10"
-        android:id="@+id/editText"
+        android:id="@+id/etEditItem"
         android:layout_below="@+id/textView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
@@ -25,7 +25,8 @@
         android:layout_height="wrap_content"
         android:text="@string/saveItem"
         android:id="@+id/btnSaveItem"
-        android:layout_below="@+id/editText"
+        android:onClick="saveItem"
+        android:layout_below="@+id/etEditItem"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
 
