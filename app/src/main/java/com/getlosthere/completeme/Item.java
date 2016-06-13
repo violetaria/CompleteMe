@@ -15,6 +15,8 @@ public class Item extends Model {
     @Column(name = "Text")
     public String text;
 
+    @Column(name = "Completed")
+    public boolean completed;
 
     public Item() {
         super();
@@ -24,6 +26,7 @@ public class Item extends Model {
         super();
         this.text = text;
         this.remoteId = remoteId;
+        this.completed = false;
     }
 
 }
