@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.activeandroid.query.Select;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -19,12 +20,14 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     ArrayList<Item> items;
     ItemsAdapter itemsAdapter;
     ListView lvItems;
     EditText etNewItem;
+    int iNextItemId;
     private final int EDIT_ITEM_CODE = 20;
 
     /**
@@ -51,9 +54,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapter,
                                            View item, int position, long id) {
+                Item deleteItem = Item.load(Item.class, items.get(position).remoteId);
+                deleteItem.delete();
                 items.remove(position);
                 itemsAdapter.notifyDataSetChanged();
-                writeItems();
                 return true;
             }
         });
@@ -69,62 +73,44 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(MainActivity.this, EditItemActivity.class);
         i.putExtra("itemText",items.get(position).text);
         i.putExtra("position",position);
+        i.putExtra("remoteId",items.get(position).remoteId);
         startActivityForResult(i,EDIT_ITEM_CODE);
     }
 
-    private void readItems() {
-        File fileDir = getFilesDir();
-        File itemFile = new File(fileDir, "item.txt");
-        try {
-            ArrayList<String> inputData = new ArrayList<String>(FileUtils.readLines(itemFile));
-            Item tempItem;
-            items = new ArrayList<Item>();
-            for(int i = 0; i< inputData.size(); i ++){
-                tempItem = new Item(inputData.get(i));
-                items.add(i,tempItem);
-            }
-        } catch (IOException e) {
-            items = new ArrayList<Item>();
-        }
-    }
-
-    private void writeItems() {
-        File fileDir = getFilesDir();
-        File itemFile = new File(fileDir, "item.txt");
-        try {
-            ArrayList<String> outputData = new ArrayList<String>();
-            for(int i = 0; i < items.size(); i++){
-                outputData.add(i,items.get(i).text);
-            }
-            FileUtils.writeLines(itemFile, outputData);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void populateArrayItems() {
-        readItems();
+        List<Item> queryResults = new Select().from(Item.class)
+                .orderBy("Text ASC").limit(100).execute();
+
+        iNextItemId = queryResults.size() + 1;
+        items = new ArrayList<Item>();
         itemsAdapter = new ItemsAdapter(this, items);
+        if (queryResults != null) {
+            itemsAdapter.addAll(queryResults);
+        }
     }
 
     public void onAddItem(View view) {
         etNewItem = (EditText) findViewById(R.id.etNewItem);
         String itemText = etNewItem.getText().toString();
-        Item newItem = new Item(itemText);
+        Item newItem = new Item(iNextItemId, itemText);
+        iNextItemId++;
+        newItem.save();
         itemsAdapter.add(newItem);
         etNewItem.setText("");
-        writeItems();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if (resultCode == RESULT_OK && requestCode == EDIT_ITEM_CODE) {
             String itemText = data.getExtras().getString("itemText");
-            Item updatedItem = new Item(itemText);
             int position = data.getExtras().getInt("position",0);
+            long remoteId = data.getExtras().getLong("remoteId",0);
+            Item updatedItem = Item.load(Item.class, remoteId);
+            updatedItem.text = itemText;
+            updatedItem.save();
+
             items.set(position,updatedItem);
             itemsAdapter.notifyDataSetChanged();
-            writeItems();
         }
     }
 
