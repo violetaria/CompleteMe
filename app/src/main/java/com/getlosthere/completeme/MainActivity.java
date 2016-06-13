@@ -20,6 +20,8 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -54,9 +56,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapter,
                                            View item, int position, long id) {
-                Item deleteItem = Item.load(Item.class, items.get(position).remoteId);
-                deleteItem.delete();
-                items.remove(position);
+                //Item deleteItem = Item.load(Item.class, items.get(position).remoteId);
+                //deleteItem.delete();
+                //items.remove(position);
+                Item updatedItem = Item.load(Item.class, items.get(position).remoteId);
+                updatedItem.completed = true;
+                updatedItem.save();
+                items.set(position,updatedItem);
+                sortItems();
                 itemsAdapter.notifyDataSetChanged();
                 return true;
             }
@@ -79,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void populateArrayItems() {
         List<Item> queryResults = new Select().from(Item.class)
-                .orderBy("Text ASC").limit(100).execute();
+                .orderBy("Completed ASC").orderBy("Text ASC").limit(100).execute();
 
         iNextItemId = queryResults.size() + 1;
         items = new ArrayList<Item>();
@@ -97,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
         newItem.save();
         itemsAdapter.add(newItem);
         etNewItem.setText("");
+        sortItems();
     }
 
     @Override
@@ -110,8 +118,26 @@ public class MainActivity extends AppCompatActivity {
             updatedItem.save();
 
             items.set(position,updatedItem);
+            sortItems();
+
             itemsAdapter.notifyDataSetChanged();
         }
+    }
+
+    protected void sortItems(){
+        Collections.sort(items, new Comparator<Item>() {
+            public int compare(Item item1, Item item2) {
+                boolean b1 = item1.completed;
+                boolean b2 = item2.completed;
+                if( b1 && ! b2 ) {
+                    return +1;
+                }
+                if( ! b1 && b2 ) {
+                    return -1;
+                }
+                return 0;
+            }
+        });
     }
 
     @Override
