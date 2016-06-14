@@ -16,12 +16,16 @@
             android:name="AA_DB_VERSION"
             android:value="2" />
         <meta-data android:name="AA_MODELS" android:value="com.getlosthere.completeme.Item" />
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".SplashActivity"
+            android:theme="@style/SplashTheme">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name=".MainActivity">
         </activity>
         <activity android:name=".EditItemActivity">
         </activity><!-- ATTENTION: This was auto-generated to add Google Play services to your project for
