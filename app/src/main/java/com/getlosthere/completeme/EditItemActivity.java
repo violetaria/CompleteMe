@@ -9,7 +9,7 @@ import android.widget.EditText;
 public class EditItemActivity extends AppCompatActivity {
     EditText etEditItem;
     int iPosition = 0;
-    long iRemoteId = 0;
+    long itemId = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,7 +18,7 @@ public class EditItemActivity extends AppCompatActivity {
 
         String editText = getIntent().getStringExtra("itemText");
         iPosition = getIntent().getIntExtra("position",0);
-        iRemoteId = getIntent().getLongExtra("remoteId",0);
+        itemId = getIntent().getLongExtra("itemId",0);
 
         etEditItem = (EditText) findViewById(R.id.etEditItem);
         etEditItem.setText(editText);
@@ -32,7 +32,7 @@ public class EditItemActivity extends AppCompatActivity {
 
         data.putExtra("itemText",itemText);
         data.putExtra("position",iPosition);
-        data.putExtra("remoteId",iRemoteId);
+        data.putExtra("itemId",itemId);
 
         setResult(RESULT_OK,data);
         finish();

@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.activeandroid.query.Delete;
 import com.activeandroid.query.Select;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -56,10 +57,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapter,
                                            View item, int position, long id) {
-                //Item deleteItem = Item.load(Item.class, items.get(position).remoteId);
-                //deleteItem.delete();
-                //items.remove(position);
-                Item updatedItem = Item.load(Item.class, items.get(position).remoteId);
+                Item updatedItem = Item.load(Item.class, items.get(position).getId());
                 updatedItem.completed = true;
                 updatedItem.save();
                 items.set(position,updatedItem);
@@ -80,31 +78,38 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(MainActivity.this, EditItemActivity.class);
         i.putExtra("itemText",items.get(position).text);
         i.putExtra("position",position);
-        i.putExtra("remoteId",items.get(position).remoteId);
+        i.putExtra("itemId",items.get(position).getId());
         startActivityForResult(i,EDIT_ITEM_CODE);
     }
 
     public void populateArrayItems() {
         List<Item> queryResults = new Select().from(Item.class)
-                .orderBy("Completed ASC").orderBy("Text ASC").limit(100).execute();
+                .orderBy("Completed ASC").limit(100).execute();
 
         iNextItemId = queryResults.size() + 1;
         items = new ArrayList<Item>();
         itemsAdapter = new ItemsAdapter(this, items);
-        if (queryResults != null) {
-            itemsAdapter.addAll(queryResults);
-        }
+        itemsAdapter.addAll(queryResults);
+        itemsAdapter.notifyDataSetChanged();
     }
 
     public void onAddItem(View view) {
         etNewItem = (EditText) findViewById(R.id.etNewItem);
         String itemText = etNewItem.getText().toString();
-        Item newItem = new Item(iNextItemId, itemText);
-        iNextItemId++;
+        Item newItem = new Item(itemText);
         newItem.save();
         itemsAdapter.add(newItem);
         etNewItem.setText("");
         sortItems();
+    }
+
+    public void onClearCompleted(View view){
+        new Delete().from(Item.class).where("Completed = ?",true).execute();
+        itemsAdapter.clear();
+        List<Item> queryResults = queryResults = new Select().from(Item.class)
+                .orderBy("Completed ASC").orderBy("Text ASC").limit(100).execute();
+        itemsAdapter.addAll(queryResults);
+        itemsAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -112,8 +117,8 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && requestCode == EDIT_ITEM_CODE) {
             String itemText = data.getExtras().getString("itemText");
             int position = data.getExtras().getInt("position",0);
-            long remoteId = data.getExtras().getLong("remoteId",0);
-            Item updatedItem = Item.load(Item.class, remoteId);
+            long itemId = data.getExtras().getLong("itemId",0);
+            Item updatedItem = Item.load(Item.class, itemId);
             updatedItem.text = itemText;
             updatedItem.save();
 

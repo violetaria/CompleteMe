@@ -33,7 +33,6 @@ public class ItemsAdapter extends ArrayAdapter<Item> {
         TextView tvItem = (TextView) convertView.findViewById(R.id.tvItem);
 
         // Populate the data into the template view using the data object
-//        tvItem.setText(item.text);
         tvItem.setText(item.text, TextView.BufferType.SPANNABLE);
 
         if (item.completed){
