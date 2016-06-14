@@ -9,8 +9,8 @@ import com.activeandroid.annotation.Table;
  */
 @Table(name = "Items")
 public class Item extends Model {
-    @Column(name = "RemoteId")
-    public long remoteId;
+//    @Column(name = "RemoteId")
+//    public long remoteId;
 
     @Column(name = "Text")
     public String text;
@@ -22,10 +22,10 @@ public class Item extends Model {
         super();
     }
 
-    public Item(long remoteId, String text) {
+//    public Item(long remoteId, String text) {
+public Item(String text) {
         super();
         this.text = text;
-        this.remoteId = remoteId;
         this.completed = false;
     }
 
