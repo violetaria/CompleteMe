@@ -9,7 +9,7 @@
     android:id="@+id/tvItem"
     android:textSize="14sp"
     android:typeface="monospace"
-    android:textColor="#839ECE"
+    android:textColor="#000000"
     android:textStyle="bold"
     android:padding="5dp"/>
 </LinearLayout>
