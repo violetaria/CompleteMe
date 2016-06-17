@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                 if (items.get(position) instanceof Item) {
                     currentItem = (Item) items.get(position);
                     Item updatedItem = Item.load(Item.class, currentItem.getId());
-                    updatedItem.completed = true;
+                    updatedItem.completed = !updatedItem.completed;
                     updatedItem.save();
                     populateArrayItems();
                     itemsAdapter.notifyDataSetChanged();
@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
 //        items = new ArrayList<Object>();
 //        itemsAdapter = new ItemsAdapter(this, items);
         itemsAdapter.clear();
-        
+
         boolean previousCompleted = false;
         for(int i = 0; i < queryResults.size(); i++){
             if(queryResults.get(i).completed != previousCompleted){
