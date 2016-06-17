@@ -26,12 +26,12 @@ import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    ArrayList<Item> items;
+    ArrayList<Object> items;
     ItemsAdapter itemsAdapter;
     ListView lvItems;
     EditText etNewItem;
-    int iNextItemId;
     private final int EDIT_ITEM_CODE = 20;
+    Item currentItem;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -43,10 +43,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        items = new ArrayList<Object>();
+        itemsAdapter = new ItemsAdapter(this, items);
+
         populateArrayItems();
+
         lvItems = (ListView) findViewById(R.id.lvItems);
         lvItems.setAdapter(itemsAdapter);
         setupListViewListener();
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         mClient = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -57,12 +63,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapter,
                                            View item, int position, long id) {
-                Item updatedItem = Item.load(Item.class, items.get(position).getId());
-                updatedItem.completed = true;
-                updatedItem.save();
-                items.set(position,updatedItem);
-                sortItems();
-                itemsAdapter.notifyDataSetChanged();
+                if (items.get(position) instanceof Item) {
+                    currentItem = (Item) items.get(position);
+                    Item updatedItem = Item.load(Item.class, currentItem.getId());
+                    updatedItem.completed = true;
+                    updatedItem.save();
+                    populateArrayItems();
+                    itemsAdapter.notifyDataSetChanged();
+                }
                 return true;
             }
         });
@@ -76,9 +84,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void launchEditItemView(int position) {
         Intent i = new Intent(MainActivity.this, EditItemActivity.class);
-        i.putExtra("itemText",items.get(position).text);
+        currentItem = (Item) items.get(position);
+        i.putExtra("itemText",currentItem.text);
         i.putExtra("position",position);
-        i.putExtra("itemId",items.get(position).getId());
+        i.putExtra("itemId",currentItem.getId());
         startActivityForResult(i,EDIT_ITEM_CODE);
     }
 
@@ -86,10 +95,23 @@ public class MainActivity extends AppCompatActivity {
         List<Item> queryResults = new Select().from(Item.class)
                 .orderBy("Completed ASC").limit(100).execute();
 
-        iNextItemId = queryResults.size() + 1;
-        items = new ArrayList<Item>();
-        itemsAdapter = new ItemsAdapter(this, items);
-        itemsAdapter.addAll(queryResults);
+//        items = new ArrayList<Object>();
+//        itemsAdapter = new ItemsAdapter(this, items);
+        itemsAdapter.clear();
+        
+        boolean previousCompleted = false;
+        for(int i = 0; i < queryResults.size(); i++){
+            if(queryResults.get(i).completed != previousCompleted){
+                itemsAdapter.add(new SectionHeader("Completed Items"));
+                previousCompleted =queryResults.get(i).completed;
+                itemsAdapter.add(queryResults.get(i));
+            }
+            else{
+                itemsAdapter.add(queryResults.get(i));
+            }
+        }
+//        itemsAdapter.addAll(queryResults);
+
         itemsAdapter.notifyDataSetChanged();
     }
 
@@ -106,9 +128,7 @@ public class MainActivity extends AppCompatActivity {
     public void onClearCompleted(View view){
         new Delete().from(Item.class).where("Completed = ?",true).execute();
         itemsAdapter.clear();
-        List<Item> queryResults = queryResults = new Select().from(Item.class)
-                .orderBy("Completed ASC").orderBy("Text ASC").limit(100).execute();
-        itemsAdapter.addAll(queryResults);
+        populateArrayItems();
         itemsAdapter.notifyDataSetChanged();
     }
 
@@ -123,21 +143,19 @@ public class MainActivity extends AppCompatActivity {
             updatedItem.save();
 
             items.set(position,updatedItem);
-            sortItems();
-
             itemsAdapter.notifyDataSetChanged();
         }
     }
 
     protected void sortItems(){
-        Collections.sort(items, new Comparator<Item>() {
-            public int compare(Item item1, Item item2) {
-                boolean b1 = item1.completed;
-                boolean b2 = item2.completed;
-                if( b1 && ! b2 ) {
+        Collections.sort(items, new Comparator<Object>() {
+            public int compare(Object o1, Object o2) {
+                Item item1 = (Item) o1;
+                Item item2 = (Item) o2;
+                if( item1.completed && ! item2.completed ) {
                     return +1;
                 }
-                if( ! b1 && b2 ) {
+                if( ! item1.completed && item2.completed ) {
                     return -1;
                 }
                 return 0;
