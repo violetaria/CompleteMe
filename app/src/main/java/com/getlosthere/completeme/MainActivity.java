@@ -110,19 +110,23 @@ public class MainActivity extends AppCompatActivity {
                 itemsAdapter.add(queryResults.get(i));
             }
         }
-//        itemsAdapter.addAll(queryResults);
 
         itemsAdapter.notifyDataSetChanged();
     }
 
     public void onAddItem(View view) {
         etNewItem = (EditText) findViewById(R.id.etNewItem);
-        if(etNewItem != null) {
+        if (etNewItem != null){
             String itemText = etNewItem.getText().toString();
-            Item newItem = new Item(itemText);
-            newItem.save();
-            populateArrayItems();
-            etNewItem.setText("");
+            if (itemText.isEmpty()) {
+                etNewItem.setError("Item cannot be blank");
+            }
+            else {
+                Item newItem = new Item(itemText);
+                newItem.save();
+                populateArrayItems();
+                etNewItem.setText("");
+            }
         }
     }
 
