@@ -117,13 +117,15 @@ public class MainActivity extends AppCompatActivity {
 
     public void onAddItem(View view) {
         etNewItem = (EditText) findViewById(R.id.etNewItem);
-        String itemText = etNewItem.getText().toString();
-        Item newItem = new Item(itemText);
-        newItem.save();
-        itemsAdapter.add(newItem);
-        etNewItem.setText("");
-        sortItems();
+        if(etNewItem != null) {
+            String itemText = etNewItem.getText().toString();
+            Item newItem = new Item(itemText);
+            newItem.save();
+            populateArrayItems();
+            etNewItem.setText("");
+        }
     }
+
 
     public void onClearCompleted(View view){
         new Delete().from(Item.class).where("Completed = ?",true).execute();
@@ -145,22 +147,6 @@ public class MainActivity extends AppCompatActivity {
             items.set(position,updatedItem);
             itemsAdapter.notifyDataSetChanged();
         }
-    }
-
-    protected void sortItems(){
-        Collections.sort(items, new Comparator<Object>() {
-            public int compare(Object o1, Object o2) {
-                Item item1 = (Item) o1;
-                Item item2 = (Item) o2;
-                if( item1.completed && ! item2.completed ) {
-                    return +1;
-                }
-                if( ! item1.completed && item2.completed ) {
-                    return -1;
-                }
-                return 0;
-            }
-        });
     }
 
     @Override
