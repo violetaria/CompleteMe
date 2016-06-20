@@ -21,3 +21,5 @@ Clear completed items via a snazzy button
 
 
 ## Preview of app
+
+![App Preview](https://raw.githubusercontent.com/violetaria/completeme/master/complete_me_recording.gif)
